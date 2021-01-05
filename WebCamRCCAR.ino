@@ -1,3 +1,4 @@
+// https://github.com/heets-silver/esp32cam-car.git
 #include "esp_camera.h"
 #include <WiFi.h>
 
@@ -12,9 +13,8 @@
 //#define CAMERA_MODEL_M5STACK_PSRAM
 #define CAMERA_MODEL_AI_THINKER
 
-const char* ssid = "SSID";
-const char* password = "password";
-
+const char* ssid = "enter-your-ssid";
+const char* password = "enter-your-password";
 
 #if defined(CAMERA_MODEL_WROVER_KIT)
 #define PWDN_GPIO_NUM    -1
@@ -60,26 +60,67 @@ const char* password = "password";
 #endif
 
 // GPIO Setting
-extern int gpLb =  2; // Left Wheel Back
-extern int gpLf = 14; // Left Wheel Forward
-extern int gpRb = 15; // Right Wheel Back
-extern int gpRf = 13; // Right Wheel Forward
-extern int gpLed =  4; // Light
+extern const int gpLb =  2; // Left Wheel Back
+extern const int gpLf = 12; // Left Wheel Forward
+extern const int gpRb = 16; // Right Wheel Back
+extern const int gpRf = 13; // Right Wheel Forward
+extern const int gpLed =  4; // Light
+extern const int gpCharging = 14;
+extern const int gpLowBatt  = 15;
 extern String WiFiAddr ="";
 
 void startCameraServer();
 
+void blink_led(int times)
+{
+  int cmsDelay = 100;
+  
+  while (times-- > 0) {
+    digitalWrite(gpLed, HIGH);
+    delay(cmsDelay);
+    digitalWrite(gpLed, LOW);
+    if (times > 0) {
+      delay(cmsDelay*2);
+    }
+  }
+}
+
+void print_reset_reason()
+{
+  esp_reset_reason_t reason = esp_reset_reason();
+  char *sz;
+  switch (reason)
+  {
+    case ESP_RST_UNKNOWN: sz = "Reset reason can not be determined."; break;
+    case ESP_RST_POWERON: sz = "Reset due to power-on event."; break;
+    case ESP_RST_EXT:     sz = "Reset by external pin (not applicable for ESP32)"; break;
+    case ESP_RST_SW:      sz = "Software reset via esp_restart."; break;
+    case ESP_RST_PANIC:   sz = "Software reset due to exception/panic."; break;
+    case ESP_RST_INT_WDT: sz = "Reset (software or hardware) due to interrupt watchdog."; break;
+    case ESP_RST_TASK_WDT: sz= "Reset due to task watchdog."; break;
+    case ESP_RST_WDT:     sz = "Reset due to other watchdogs."; break;
+    case ESP_RST_DEEPSLEEP: sz = "Reset after exiting deep sleep mode."; break;
+    case ESP_RST_BROWNOUT: sz = "Brownout reset (software or hardware)"; break;
+    case ESP_RST_SDIO:     sz = "Reset over SDIO."; break;
+    default:               sz = "Unknown"; break;
+  }
+  Serial.printf("Reset reason: %s\n", sz);
+}
+
+
 void setup() {
+  int cFails = 0;
   Serial.begin(115200);
   Serial.setDebugOutput(true);
-  Serial.println();
-
+  print_reset_reason();
 
   pinMode(gpLb, OUTPUT); //Left Backward
   pinMode(gpLf, OUTPUT); //Left Forward
   pinMode(gpRb, OUTPUT); //Right Forward
   pinMode(gpRf, OUTPUT); //Right Backward
   pinMode(gpLed, OUTPUT); //Light
+  pinMode(gpLowBatt, INPUT);
+  pinMode(gpCharging, INPUT);
 
   //initialize
   digitalWrite(gpLb, LOW);
@@ -124,21 +165,32 @@ void setup() {
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
     Serial.printf("Camera init failed with error 0x%x", err);
+    blink_led(3);
+    esp_restart();
     return;
   }
-
+  
   //drop down frame size for higher initial frame rate
   sensor_t * s = esp_camera_sensor_get();
   s->set_framesize(s, FRAMESIZE_CIF);
-
+ 
   WiFi.begin(ssid, password);
 
-  while (WiFi.status() != WL_CONNECTED) {
+  blink_led(1);
+
+  while (WiFi.localIP().toString() == "0.0.0.0") {
     delay(500);
-    Serial.print(".");
+    Serial.println(WiFi.status());
+    cFails++;
+    if (cFails > 9) {
+      Serial.println("Giving up waiting for WiFi");
+      esp_restart();
+    }
   }
   Serial.println("");
   Serial.println("WiFi connected");
+
+  blink_led(2);
 
   startCameraServer();
 

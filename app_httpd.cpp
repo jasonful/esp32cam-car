@@ -18,11 +18,16 @@
 #include "camera_index.h"
 #include "Arduino.h"
 
-extern int gpLb;
-extern int gpLf;
-extern int gpRb;
-extern int gpRf;
-extern int gpLed;
+#define URI_PREFIX "/robotcam"
+#define NUDGE_DELAY 50
+
+extern const int gpLb;
+extern const int gpLf;
+extern const int gpRb;
+extern const int gpRf;
+extern const int gpLed;
+extern const int gpCharging;
+extern const int gpLowBatt;
 extern String WiFiAddr;
 
 void WheelAct(int nLf, int nLb, int nRf, int nRb);
@@ -183,11 +188,13 @@ static esp_err_t stream_handler(httpd_req_t *req){
         last_frame = fr_end;
         frame_time /= 1000;
         uint32_t avg_frame_time = ra_filter_run(&ra_filter, frame_time);
+        /*
         Serial.printf("MJPG: %uB %ums (%.1ffps), AVG: %ums (%.1ffps)"
             ,(uint32_t)(_jpg_buf_len),
             (uint32_t)frame_time, 1000.0 / (uint32_t)frame_time,
             avg_frame_time, 1000.0 / avg_frame_time
         );
+        */
     }
 
     last_frame = 0;
@@ -309,24 +316,31 @@ static esp_err_t index_handler(httpd_req_t *req){
     httpd_resp_set_type(req, "text/html");
     String page = "";
      page += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0\">\n";
- page += "<script>var xhttp = new XMLHttpRequest();</script>";
- page += "<script>function getsend(arg) { xhttp.open('GET', arg +'?' + new Date().getTime(), true); xhttp.send() } </script>";
- //page += "<p align=center><IMG SRC='http://" + WiFiAddr + ":81/stream' style='width:280px;'></p><br/><br/>";
- page += "<p align=center><IMG SRC='http://" + WiFiAddr + ":81/stream' style='width:300px; transform:rotate(180deg);'></p><br/><br/>";
- 
- page += "<p align=center> <button style=width:90px;height:80px onmousedown=getsend('go') onmouseup=getsend('stop') ontouchstart=getsend('go') ontouchend=getsend('stop') ></button> </p>";
- page += "<p align=center>";
- page += "<button style=width:90px;height:80px onmousedown=getsend('left') onmouseup=getsend('stop') ontouchstart=getsend('left') ontouchend=getsend('stop')></button>&nbsp;";
- page += "<button style=width:90px;height:80px onmousedown=getsend('stop') onmouseup=getsend('stop')></button>&nbsp;";
- page += "<button style=width:90px;height:80px onmousedown=getsend('right') onmouseup=getsend('stop') ontouchstart=getsend('right') ontouchend=getsend('stop')></button>";
- page += "</p>";
-
- page += "<p align=center><button style=width:90px;height:80px onmousedown=getsend('back') onmouseup=getsend('stop') ontouchstart=getsend('back') ontouchend=getsend('stop') ></button></p>";  
-
- page += "<p align=center>";
- page += "<button style=width:140px;height:40px onmousedown=getsend('ledon')>LED ON</button>";
- page += "<button style=width:140px;height:40px onmousedown=getsend('ledoff')>LED OFF</button>";
- page += "</p>";
+     page += "<script>var xhttp = new XMLHttpRequest();</script>";
+     page += "<script>function getsend(arg) { xhttp.open('GET', arg +'?' + new Date().getTime(), true); xhttp.send() } </script>";
+     //page += "<p align=center><IMG SRC='http://" + WiFiAddr + ":81/stream' style='width:280px;'></p><br/><br/>";
+     page += "<p align=center><IMG SRC='http://" + WiFiAddr + ":81" + URI_PREFIX "/stream' style='width:300px; transform:rotate(90deg);'></p><br/><br/>";
+     
+     page += "<p align=center> <button style=width:90px;height:20px onmousedown=getsend('gonudge') ontouchstart=getsend('gonudge') >^</button> </p>";
+     page += "<p align=center> <button style=width:90px;height:80px onmousedown=getsend('go') onmouseup=getsend('stop') ontouchstart=getsend('go') ontouchend=getsend('stop') >Go</button> </p>";
+     page += "<p align=center>";
+     page += "<button style=width:20px;height:80px onmousedown=getsend('leftnudge') ontouchstart=getsend('leftnudge')>&lt;</button>&nbsp;";
+     page += "<button style=width:90px;height:80px onmousedown=getsend('left') onmouseup=getsend('stop') ontouchstart=getsend('left') ontouchend=getsend('stop')>Left</button>&nbsp;";
+     page += "<button style=width:90px;height:80px onmousedown=getsend('stop') onmouseup=getsend('stop')>Stop</button>&nbsp;";
+     page += "<button style=width:90px;height:80px onmousedown=getsend('right') onmouseup=getsend('stop') ontouchstart=getsend('right') ontouchend=getsend('stop')>Right</button>";
+     page += "<button style=width:20px;height:80px onmousedown=getsend('rightnudge') ontouchstart=getsend('rightnudge')>&gt;</button>";
+     page += "</p>";
+    
+     page += "<p align=center><button style=width:90px;height:80px onmousedown=getsend('back') onmouseup=getsend('stop') ontouchstart=getsend('back') ontouchend=getsend('stop') >Back</button></p>";  
+     page += "<p align=center><button style=width:90px;height:20px onmousedown=getsend('backnudge') ontouchstart=getsend('backnudge') >V</button> </p>";
+     page += "<p align=center>";
+     page += "<button style=width:140px;height:40px onmousedown=getsend('ledon')>LED ON</button>";
+     page += "<button style=width:140px;height:40px onmousedown=getsend('ledoff')>LED OFF</button>";
+     page += "</p>";
+     if (digitalRead(gpCharging))
+      page += "Charging<br/>";
+     if (LOW == digitalRead(gpLowBatt))
+      page += "Low battery<br/>"; 
  
     return httpd_resp_send(req, &page[0], strlen(&page[0]));
 }
@@ -357,6 +371,40 @@ static esp_err_t right_handler(httpd_req_t *req){
     return httpd_resp_send(req, "OK", 2);
 }
 
+static esp_err_t go_nudge_handler(httpd_req_t *req){
+    WheelAct(HIGH, LOW, HIGH, LOW);
+    delay (NUDGE_DELAY);
+    WheelAct(LOW, LOW, LOW, LOW);
+    Serial.println("Go Nudge");
+    httpd_resp_set_type(req, "text/html");
+    return httpd_resp_send(req, "OK", 2);
+}
+static esp_err_t back_nudge_handler(httpd_req_t *req){
+    WheelAct(LOW, HIGH, LOW, HIGH);
+    delay (NUDGE_DELAY);
+    WheelAct(LOW, LOW, LOW, LOW);
+    Serial.println("Back nudge");
+    httpd_resp_set_type(req, "text/html");
+    return httpd_resp_send(req, "OK", 2);
+}
+
+static esp_err_t left_nudge_handler(httpd_req_t *req){
+    WheelAct(HIGH, LOW, LOW, HIGH);
+    delay (NUDGE_DELAY);
+    WheelAct(LOW, LOW, LOW, LOW);
+    Serial.println("Left nudge");
+    httpd_resp_set_type(req, "text/html");
+    return httpd_resp_send(req, "OK", 2);
+}
+static esp_err_t right_nudge_handler(httpd_req_t *req){
+    WheelAct(LOW, HIGH, HIGH, LOW);
+    delay (NUDGE_DELAY);
+    WheelAct(LOW, LOW, LOW, LOW);
+    Serial.println("Right nudge");
+    httpd_resp_set_type(req, "text/html");
+    return httpd_resp_send(req, "OK", 2);
+}
+
 static esp_err_t stop_handler(httpd_req_t *req){
     WheelAct(LOW, LOW, LOW, LOW);
     Serial.println("Stop");
@@ -379,86 +427,115 @@ static esp_err_t ledoff_handler(httpd_req_t *req){
 
 void startCameraServer(){
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.max_uri_handlers = 12;
 
     httpd_uri_t go_uri = {
-        .uri       = "/go",
+        .uri       = URI_PREFIX "/go",
         .method    = HTTP_GET,
         .handler   = go_handler,
         .user_ctx  = NULL
     };
 
     httpd_uri_t back_uri = {
-        .uri       = "/back",
+        .uri       = URI_PREFIX "/back",
         .method    = HTTP_GET,
         .handler   = back_handler,
         .user_ctx  = NULL
     };
 
     httpd_uri_t stop_uri = {
-        .uri       = "/stop",
+        .uri       = URI_PREFIX "/stop",
         .method    = HTTP_GET,
         .handler   = stop_handler,
         .user_ctx  = NULL
     };
 
     httpd_uri_t left_uri = {
-        .uri       = "/left",
+        .uri       = URI_PREFIX "/left",
         .method    = HTTP_GET,
         .handler   = left_handler,
         .user_ctx  = NULL
     };
     
     httpd_uri_t right_uri = {
-        .uri       = "/right",
+        .uri       = URI_PREFIX "/right",
         .method    = HTTP_GET,
         .handler   = right_handler,
         .user_ctx  = NULL
     };
+
+    httpd_uri_t go_nudge_uri = {
+        .uri       = URI_PREFIX "/gonudge",
+        .method    = HTTP_GET,
+        .handler   = go_nudge_handler,
+        .user_ctx  = NULL
+    };
+
+    httpd_uri_t back_nudge_uri = {
+        .uri       = URI_PREFIX "/backnudge",
+        .method    = HTTP_GET,
+        .handler   = back_nudge_handler,
+        .user_ctx  = NULL
+    };
+
+    httpd_uri_t left_nudge_uri = {
+        .uri       = URI_PREFIX "/leftnudge",
+        .method    = HTTP_GET,
+        .handler   = left_nudge_handler,
+        .user_ctx  = NULL
+    };
+    
+    httpd_uri_t right_nudge_uri = {
+        .uri       = URI_PREFIX "/rightnudge",
+        .method    = HTTP_GET,
+        .handler   = right_nudge_handler,
+        .user_ctx  = NULL
+    };
     
     httpd_uri_t ledon_uri = {
-        .uri       = "/ledon",
+        .uri       = URI_PREFIX "/ledon",
         .method    = HTTP_GET,
         .handler   = ledon_handler,
         .user_ctx  = NULL
     };
     
     httpd_uri_t ledoff_uri = {
-        .uri       = "/ledoff",
+        .uri       = URI_PREFIX "/ledoff",
         .method    = HTTP_GET,
         .handler   = ledoff_handler,
         .user_ctx  = NULL
     };
 
     httpd_uri_t index_uri = {
-        .uri       = "/",
+        .uri       = URI_PREFIX "/",
         .method    = HTTP_GET,
         .handler   = index_handler,
         .user_ctx  = NULL
     };
 
     httpd_uri_t status_uri = {
-        .uri       = "/status",
+        .uri       = URI_PREFIX "/status",
         .method    = HTTP_GET,
         .handler   = status_handler,
         .user_ctx  = NULL
     };
 
     httpd_uri_t cmd_uri = {
-        .uri       = "/control",
+        .uri       = URI_PREFIX "/control",
         .method    = HTTP_GET,
         .handler   = cmd_handler,
         .user_ctx  = NULL
     };
 
     httpd_uri_t capture_uri = {
-        .uri       = "/capture",
+        .uri       = URI_PREFIX "/capture",
         .method    = HTTP_GET,
         .handler   = capture_handler,
         .user_ctx  = NULL
     };
 
    httpd_uri_t stream_uri = {
-        .uri       = "/stream",
+        .uri       = URI_PREFIX "/stream",
         .method    = HTTP_GET,
         .handler   = stream_handler,
         .user_ctx  = NULL
@@ -474,6 +551,10 @@ void startCameraServer(){
         httpd_register_uri_handler(camera_httpd, &stop_uri); 
         httpd_register_uri_handler(camera_httpd, &left_uri);
         httpd_register_uri_handler(camera_httpd, &right_uri);
+        httpd_register_uri_handler(camera_httpd, &go_nudge_uri); 
+        httpd_register_uri_handler(camera_httpd, &back_nudge_uri); 
+        httpd_register_uri_handler(camera_httpd, &left_nudge_uri);
+        httpd_register_uri_handler(camera_httpd, &right_nudge_uri);
         httpd_register_uri_handler(camera_httpd, &ledon_uri);
         httpd_register_uri_handler(camera_httpd, &ledoff_uri);
     }
@@ -488,8 +569,37 @@ void startCameraServer(){
 
 void WheelAct(int nLf, int nLb, int nRf, int nRb)
 {
- digitalWrite(gpLf, nLf);
- digitalWrite(gpLb, nLb);
- digitalWrite(gpRf, nRf);
- digitalWrite(gpRb, nRb);
+ const int speed = 0;
+ static bool fSetUpLed = false;
+
+ if (speed)
+ {
+     if (!fSetUpLed)
+     {
+      ledcAttachPin(gpLf, gpLf);
+      ledcAttachPin(gpLb, gpLb);
+      ledcAttachPin(gpRf, gpRf);
+      ledcAttachPin(gpRb, gpRb);
+      ledcSetup(gpLf, 400, 8);
+      ledcSetup(gpLb, 400, 8);
+      ledcSetup(gpRf, 400, 8);
+      ledcSetup(gpRb, 400, 8);
+      fSetUpLed = true;
+     }
+     
+     ledcWrite(gpLf, nLf == HIGH ? speed : 0);
+     
+     ledcWrite(gpLb, nLb == HIGH ? speed : 0);
+     
+     ledcWrite(gpRf, nRf == HIGH ? speed : 0);
+    
+     ledcWrite(gpRb, nRb == HIGH ? speed : 0);
+ }
+ else
+ {
+    digitalWrite(gpLf, nLf);
+    digitalWrite(gpLb, nLb);
+    digitalWrite(gpRf, nRf);
+    digitalWrite(gpRb, nRb);
+ }
 }
