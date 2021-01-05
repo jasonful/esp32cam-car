@@ -28,6 +28,8 @@ The ESP32 robot cam is a mobile surveillance robot that can be controlled over t
 
 ## Wiring
 
+![Wiring](https://raw.githubusercontent.com/jasonful/esp32cam-car/master/wiring.png)
+
 
 ESP32-Cam|PowerBoost|Motor Driver| Var. Pot.|AA Batt Pack|Left Motor|Right Motor
 ---------|--------------|--------|----------|------------|----------|-----
