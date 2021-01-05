@@ -41,15 +41,15 @@ Io15	|LB
 Io14	|				|		| 2 (middle)
 Io2		|				|In3
 Io14	|				|In2	|			|			|
-		|				|VCC	|			|+
-		|				|Gnd	|			|-
-		|5V				|EEP
-		|				|Out1	|			|			|+ (top)
-		|				|Out2	|			|			|- (bottom)
-		|				|Out3	|			|			|			|- (bottom)	
-		|				|Out4	|			|			|			|+ (top)
-		|USB			|		|1 (left)			
-		|Gnd			|		|3 (right)	
+-		|				|VCC	|			|+
+-		|				|Gnd	|			|-
+-		|5V				|EEP
+-		|				|Out1	|			|			|+ (top)
+-		|				|Out2	|			|			|- (bottom)
+-		|				|Out3	|			|			|			|- (bottom)	
+-		|				|Out4	|			|			|			|+ (top)
+-		|USB			|		|1 (left)			
+-		|Gnd			|		|3 (right)	
 		
 		
 You may also want to put a [pushbutton](https://www.sparkfun.com/products/97) between the PowerBoost's EN and GND to make resetting easier.  Or just have a dangling DuPont wire hanging off EN that you can plug into GND.
