@@ -18,7 +18,7 @@
 #include "camera_index.h"
 #include "Arduino.h"
 
-#define URI_PREFIX "/robotcam"
+#define URI_PREFIX 
 #define NUDGE_DELAY 50
 
 extern const int gpLb;
