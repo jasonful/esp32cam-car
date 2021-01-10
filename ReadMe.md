@@ -4,9 +4,13 @@
 
 The ESP32 robot cam is a mobile surveillance robot that can be controlled over the internet.  It is built around a standard ESP32-Cam board, plus a motor driver, batteries, power supply board, and motorized platform.  It also includes an optional inductive charger so that it can "dock" and recharge itself while remaining connected to the internet and ready to respond to commands without depleting its battery.
 
+[Photo](https://github.com/jasonful/esp32cam-car/blob/master/side.jpg?raw=true)
+
+[Video](https://youtu.be/2VAeyFWPYL0)
+
 ## Hardware
 1. [ESP32-Cam] (AI-Thinker, or clone)
-	The one I bought from [BangGood](https://www.banggood.com/ESP32-CAM-WiFi-+-bluetooth-Camera-Module-Development-Board-ESP32-With-Camera-Module-OV2640-p-1394679.html?rmmds=myorder&cur_warehouse=USA) was configured to use an external antenna, whereas the one from [Amazon](https://www.amazon.com/gp/product/B07WCFGMTF/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) used the internal antenna.  Both work, and you can switch a board from one to the other, though it requires some delicate [desoldering and resoldering](https://randomnerdtutorials.com/esp32-cam-connect-external-antenna/).  If you need an external antenna, get one with a "U.FL Mini PCI" connector.
+	- The one I bought from [BangGood](https://www.banggood.com/ESP32-CAM-WiFi-+-bluetooth-Camera-Module-Development-Board-ESP32-With-Camera-Module-OV2640-p-1394679.html?rmmds=myorder&cur_warehouse=USA) was configured to use an external antenna, whereas the one from [Amazon](https://www.amazon.com/gp/product/B07WCFGMTF/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) used the internal antenna.  Both work, and you can switch a board from one to the other, though it requires some delicate [desoldering and resoldering](https://randomnerdtutorials.com/esp32-cam-connect-external-antenna/).  If you need an external antenna, get one with a "U.FL Mini PCI" connector.
 2. [AdaFruit PowerBoost 500](https://www.adafruit.com/product/1944)
 3. [DRV883 Motor Driver](https://www.amazon.com/gp/product/B07FZY8GX2/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)
 4. LiPoly battery, such as [this one](https://www.adafruit.com/product/328)
