@@ -24,12 +24,12 @@ The ESP32 robot cam is a mobile surveillance robot that can be controlled over t
 ## Assembly
 1. Assemble the robot chassis according to the instructions that come with it.  The instructions that came with mine were pretty incomprehensible, but it's not that hard to figure out how to put it together even without instructions.
 2. Solder headers onto the Esp32-Cam, the PowerBoost, and the Motor Driver.  
-1. If using an external antenna, (and assuming it is like [mine](antenna.jpg)) unscrew the two halves, drill a 1/4" hole in a convenient spot in the chassis, feed the body of the antenna through the top, then screw in the other half from below, and secure with the nut.  Attach the wire to the underside of the ESP32-Cam.
+1. If using an external antenna, (and assuming it is like [mine](https://github.com/jasonful/esp32cam-car/blob/master/antenna.jpg?raw=true)) unscrew the two halves, drill a 1/4" hole in a convenient spot in the chassis, feed the body of the antenna through the top, then screw in the other half from below, and secure with the nut.  Attach the wire to the underside of the ESP32-Cam.
 1. Plug the Esp32-Cam, the PowerBoost, and the Motor Driver into the breadboard with the PowerBoost at the top, Motor Driver in the middle, then the variable potentiometer, then the ESP32-Cam at the bottom.  On a half-size breadboard, there are just barely enough rows to fit everything. The camera lens will be pointing up at the ceiling so you'll want to flex it 90 degrees so it is pointing forward; I put a cube of [poster tack](https://www.amazon.com/Elmers-Poster-Tack-Reusable-Ounces/dp/B000BKQDB4#:~:text=Hang%20maps%2C%20posters%2C%20paper%20decorations%2C%20and%20other%20lightweight%20items,and%20other%20non%2Dporous%20surfaces.) behind it to hold it up.
 3. Attach breadboard to car chassis, towards the front, with camera facing forward, using hot glue or adhesive strips.
 4. Plug the Li-poly battery into the PowerBoost.  Important: Make sure the polarity of the battery matches the polarity of the PowerBoost; otherwise, you will destroy both. If you buy your battery from Adafruit, it will match.  But if purchased elsewhere, it very well may be reversed.  If you need to reverse the polarity, see [this video](https://www.youtube.com/watch?v=PYPZA9xxinU).  
-1. Use an adhesive strip to mount the inductive charger (the half with the oval copper coil) to the front of the top of the chassis so that the coil hangs over the front of the chassis like a bumper. See [photo](front.jpg).
-1. Tape the other half of the inductive charger to a wall, at a height where it aligns with the half on the chassis. See [photo](dock.jpg).  Attach USB power.
+1. Use an adhesive strip to mount the inductive charger (the half with the oval copper coil) to the front of the top of the chassis so that the coil hangs over the front of the chassis like a bumper. See [photo](https://github.com/jasonful/esp32cam-car/blob/master/front.jpg?raw=true).
+1. Tape the other half of the inductive charger to a wall, at a height where it aligns with the half on the chassis. See [photo](https://github.com/jasonful/esp32cam-car/blob/master/dock.jpg?raw=true).  Attach USB power.
 1. Insert 4 AA batteries into the holder.
 1. Plug a USB cable from your PC to the FTDI board.  Connect the FTDI's TX to the ESP32-Cam's RX, and the FTDI's RX to the ESP32-Cam's TX, and Gnd to Gnd. (The FTDI does not need to supply power because that will come from the PowerBoost.)
 1. Now wire up everything:
@@ -53,7 +53,7 @@ Io14	|				|In2	|			|			|
 
 		
 
-Most of the wiring is just plugging wires into the breadboard, but you'll probably want to solder the wires to the [motor terminals](motor.jpg).  And solder the AA battery pack wires to header pins to make them easier to insert into the breadboard.  Same with the inductive charger [wires](charger.jpg).
+Most of the wiring is just plugging wires into the breadboard, but you'll probably want to solder the wires to the [motor terminals](https://github.com/jasonful/esp32cam-car/blob/master/motor.jpg?raw=true).  And solder the AA battery pack wires to header pins to make them easier to insert into the breadboard.  Same with the inductive charger [wires](https://github.com/jasonful/esp32cam-car/blob/master/charger.jpg?raw=true).
 I used the breadboard rails for USB and GND.  For the 5V I just used the holes next to the PowerBoost 5V.
 
 ### Optional:
