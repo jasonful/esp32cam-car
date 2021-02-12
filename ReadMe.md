@@ -47,7 +47,7 @@ Io13	|				|In1
 Io15	|LB
 Io14	|				|		|2 (middle)
 Io2		|				|In3
-Io14	|				|In2	|			|			|
+Io16	|				|In2	|			|			|
 .		|				|VCC	|			|+
 .		|				|Out1	|			|			|+ (top)
 .		|				|Out2	|			|			|- (bottom)
